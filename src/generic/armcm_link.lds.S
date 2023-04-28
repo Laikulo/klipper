@@ -26,6 +26,12 @@ SECTIONS
         *(.rodata .rodata*)
     } > rom
 
+    .ARM.exidx : {
+        __exidx_start = .;
+        *(.ARM.exidx* .gnu.linkonce.armexidx.*)
+        __exidx_end = .;
+    } > rom
+
     . = ALIGN(4);
     _data_flash = .;
 
@@ -62,6 +68,17 @@ SECTIONS
     {
         . = . + CONFIG_STACK_SIZE;
         _stack_end = .;
+    } > ram
+
+    // Zero-size heap to make sbrk happy
+    .heap (NOLOAD) :
+    {
+        __heap_start__ = .;
+        end = __heap_start__;
+        _end = end;
+        __end = end;
+        __heap_end__ = .;
+        __HeapLimit = __heap_end__;
     } > ram
 
     /DISCARD/ : {
