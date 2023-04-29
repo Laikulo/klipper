@@ -70,7 +70,13 @@ SECTIONS
         _stack_end = .;
     } > ram
 
-    // Zero-size heap to make sbrk happy
+    // Versions of newlib with libnosys require a heap end marker even
+    // in C freestanding mode. This creates a one byte heap.
+    // !! WARNING: The version of sbrk in libnosys does NOT check
+    // for the heap overrunning its allocation. Trying to expand the heap
+    // will have undefined behavior.
+    // Note: 'end' below refers to the initial end of the heap,
+    // while __heap_end__ refers to the last available address
     .heap (NOLOAD) :
     {
         __heap_start__ = .;
