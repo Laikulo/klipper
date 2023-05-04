@@ -110,15 +110,23 @@ class Printer:
             return self.objects[section]
         module_parts = section.split()
         module_name = module_parts[0]
-        py_name = os.path.join(os.path.dirname(__file__),
-                               'extras', module_name + '.py')
-        py_dirname = os.path.join(os.path.dirname(__file__),
-                                  'extras', module_name, '__init__.py')
-        if not os.path.exists(py_name) and not os.path.exists(py_dirname):
-            if default is not configfile.sentinel:
-                return default
-            raise self.config_error("Unable to load module '%s'" % (section,))
-        mod = importlib.import_module('extras.' + module_name)
+        if '.' in module_name:
+            # A module is considered external to klipper if its name includes at least one dot
+            module_fullname = module_name
+        else:
+            module_fullname = 'extras.' + module_name
+            py_name = os.path.join(os.path.dirname(__file__),
+                                   'extras', module_name + '.py')
+            py_dirname = os.path.join(os.path.dirname(__file__),
+                                      'extras', module_name, '__init__.py')
+            if not os.path.exists(py_name) and not os.path.exists(py_dirname):
+                if default is not configfile.sentinel:
+                    return default
+                raise self.config_error("Unable to load module '%s'" % (section,))
+        try:
+            mod = importlib.import_module(module_fullname)
+        except:
+            raise self.config_error("Unable to load module %s" % (section,))
         init_func = 'load_config'
         if len(module_parts) > 1:
             init_func = 'load_config_prefix'
